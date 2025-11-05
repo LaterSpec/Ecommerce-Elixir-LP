@@ -1,0 +1,43 @@
+# Directorio de compilación
+/_build/
+
+# Directorio de dependencias
+/deps/
+
+# Archivos de Mix
+*.ez
+
+# Generados al crear releases
+/rel/
+
+# Archivos temporales y de caché
+erl_crash.dump
+*.beam
+*.plt
+*.swp
+.DS_Store
+
+# Variables de entorno
+.env
+
+# Archivos de configuración local
+/config/*.secret.exs
+
+# Archivos de base de datos local
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+*.log
+
+# Archivos de editores
+.vscode/
+.idea/
+*.iml
+.elixir_ls/
+
+# Archivos de sistema
+.AppleDouble
+.LSOverride
+Thumbs.db
