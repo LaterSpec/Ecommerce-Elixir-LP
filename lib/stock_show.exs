@@ -57,7 +57,7 @@ defmodule Supermarket.StockShow do
             {sku, ""} ->
               Repo.all(from [p, si] in query, where: p.sku == ^sku)
             _ ->
-              IO.puts("❌ SKU debe ser un número entero.")
+              IO.puts("SKU debe ser un número entero.")
               []
           end
         _ ->
@@ -68,14 +68,14 @@ defmodule Supermarket.StockShow do
   end
 
   defp display_results([]) do
-    IO.puts("📦 Sin productos/stock.")
+    IO.puts("Sin productos/stock.")
   end
 
   defp display_results(rows) do
     IO.puts("\n" <> String.duplicate("=", 80))
     IO.puts(String.pad_trailing("SKU", 8) <> 
             String.pad_trailing("Cantidad", 12) <> 
-            String.pad_trailing("Categoría", 15) <> 
+            String.pad_trailing("Categoria", 15) <> 
             String.pad_trailing("Precio", 10) <> 
             "Nombre")
     IO.puts(String.duplicate("=", 80))

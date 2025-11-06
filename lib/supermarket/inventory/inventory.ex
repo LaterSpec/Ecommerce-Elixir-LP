@@ -4,7 +4,7 @@ defmodule Supermarket.Inventory do
   alias Supermarket.Product  
   alias Supermarket.Inventory.StockItem
 
-  # Lee stock por SKU (0 si no existe fila aún)
+  # Lee stock por SKU
   def get_stock_by_sku(sku) when is_integer(sku) do
     from(si in StockItem,
       join: p in Product, on: p.id == si.product_id,
@@ -18,7 +18,7 @@ defmodule Supermarket.Inventory do
     end
   end
 
-  # Setea cantidad exacta por SKU (crea fila si no existe)
+  # Setea cantidad exacta por SKU 
   def set_stock_by_sku(sku, qty) when is_integer(sku) and is_integer(qty) and qty >= 0 do
     case Repo.get_by(Product, sku: sku) do
       nil -> 
@@ -38,7 +38,7 @@ defmodule Supermarket.Inventory do
     end
   end
 
-  # Ajusta (+/-) stock por SKU (no permite negativos)
+  # Ajusta (+/-) stock por SKU 
   def inc_stock_by_sku(sku, delta) when is_integer(sku) and is_integer(delta) do
     Repo.transaction(fn ->
       case Repo.get_by(Product, sku: sku) do

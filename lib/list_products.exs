@@ -40,24 +40,35 @@ defmodule Supermarket.CLI do
   alias Supermarket.{Repo, Product}
 
   def list_products do
-    # Opción 1: usando from/2 (recomendada)
-    query = from p in Product, order_by: [asc: p.id]
+    query = from p in Product, order_by: [asc: p.sku]
     products = Repo.all(query)
 
     if Enum.empty?(products) do
-      IO.puts("📦 No hay productos registrados.")
+      IO.puts("\n No hay productos registrados.\n")
     else
-      IO.puts("📋 Lista de productos:\n")
+      IO.puts("\n" <> String.duplicate("=", 90))
+      IO.puts(
+        String.pad_trailing("SKU", 8) <> 
+        String.pad_trailing("Categoría", 20) <> 
+        String.pad_trailing("Precio", 12) <> 
+        String.pad_trailing("Estado", 10) <> 
+        "Nombre"
+      )
+      IO.puts(String.duplicate("=", 90))
+      
       Enum.each(products, fn p ->
-        IO.puts("ID: #{p.id}")
-        IO.puts("Nombre: #{p.name}")
-        IO.puts("SKU: #{p.sku}")
-        IO.puts("Categoría: #{p.category}")
-        IO.puts("Precio: $#{p.price}")
-        IO.puts("Activo: #{if p.active, do: "Sí", else: "No"}")
-        IO.puts("Creado: #{p.inserted_at}")
-        IO.puts("-----------------------------")
+        estado = if p.active, do: "Activo", else: "Inactivo"
+        IO.puts(
+          String.pad_trailing("#{p.sku}", 8) <> 
+          String.pad_trailing("#{p.category}", 20) <> 
+          String.pad_trailing("$#{p.price}", 12) <> 
+          String.pad_trailing("#{estado}", 10) <> 
+          "#{p.name}"
+        )
       end)
+      
+      IO.puts(String.duplicate("=", 90))
+      IO.puts("Total de productos: #{length(products)}\n")
     end
   end
 end

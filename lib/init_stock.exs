@@ -56,7 +56,7 @@ defmodule Supermarket.InitStock do
     products = Repo.all(Product)
 
     if Enum.empty?(products) do
-      IO.puts("⚠️  No hay productos en la base de datos. Crea productos primero.")
+      IO.puts("No hay productos en la base de datos. Crea productos primero.")
     else
       Enum.each(products, fn p ->
         case Repo.get_by(StockItem, product_id: p.id) do
@@ -70,7 +70,7 @@ defmodule Supermarket.InitStock do
             si
             |> StockItem.changeset(%{quantity: 20})
             |> Repo.update!()
-            IO.puts("🔁 #{p.name} (SKU #{p.sku}) → stock actualizado a 20.")
+            IO.puts("#{p.name} (SKU #{p.sku}) → stock actualizado a 20.")
         end
       end)
 

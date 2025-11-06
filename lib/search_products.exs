@@ -52,10 +52,10 @@ defmodule Supermarket.CLI do
 
     case Repo.all(query) do
       [] ->
-        IO.puts("📭 No hay categorías registradas.")
+        IO.puts("No hay categorías registradas.")
 
       cats ->
-        IO.puts("🏷️  Categorías:")
+        IO.puts("Categorías:")
         Enum.each(cats, &IO.puts("- " <> &1))
     end
   end
@@ -69,7 +69,7 @@ defmodule Supermarket.CLI do
       |> Enum.reject(&(&1 == ""))
 
     if cats == [] do
-      IO.puts("❌ Debes indicar al menos una categoría.")
+      IO.puts("Debes indicar al menos una categoría.")
       usage()
     else
       search_by_categories(cats)
@@ -101,9 +101,9 @@ defmodule Supermarket.CLI do
     products = Repo.all(query)
 
     if Enum.empty?(products) do
-      IO.puts("🔎 No se encontraron productos para categorías: #{Enum.join(cats, ", ")}")
+      IO.puts("No se encontraron productos para categorías: #{Enum.join(cats, ", ")}")
     else
-      IO.puts("📋 Productos (#{Enum.join(cats, ", ")}):\n")
+      IO.puts("Productos (#{Enum.join(cats, ", ")}):\n")
       Enum.each(products, fn p ->
         IO.puts("ID: #{p.id}")
         IO.puts("Nombre: #{p.name}")

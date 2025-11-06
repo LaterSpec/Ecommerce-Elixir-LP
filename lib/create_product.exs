@@ -93,12 +93,12 @@ case System.argv() do
             IO.puts("   Precio: $#{product.price}")
 
           {:error, changeset} ->
-            IO.puts("❌ Error al crear producto:")
+            IO.puts("Error al crear producto:")
             IO.inspect(changeset.errors)
         end
 
       _ ->
-        IO.puts("❌ El precio debe ser un número entero.")
+        IO.puts("El precio debe ser un número entero.")
         IO.puts("Uso: elixir lib/create_product.exs \"Nombre del producto\" \"Categoría\" <precio>")
     end
 

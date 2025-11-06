@@ -10,6 +10,8 @@ defmodule Supermarket.Product do
     field :active, :boolean, default: true
     
     has_many :stock_items, Supermarket.Inventory.StockItem
+
+    has_many :cart_items, Supermarket.Cart.CartItem
     
     timestamps()
   end

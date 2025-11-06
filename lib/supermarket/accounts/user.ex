@@ -7,10 +7,14 @@ defmodule Supermarket.Accounts.User do
     field :password, :string, virtual: true
     field :password_confirmation, :string, virtual: true
     field :password_hash, :string
+
+    has_many :cart_items, Supermarket.Cart.CartItem
+
     timestamps()
+
   end
 
-  # registro con password plano (se hashea aquí)
+  # registro con password plano 
   def registration_changeset(user, attrs) do
     user
     |> cast(attrs, [:username, :password, :password_confirmation])
