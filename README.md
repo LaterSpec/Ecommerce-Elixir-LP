@@ -90,7 +90,7 @@ ProyectoFinalV2/
 
 **products**
 - `sku` (integer, único) - Generado automáticamente desde 10001
-- `name`, `category`, `price` (integer, en centavos), `active`
+- `name`, `category`, `price` , `active`
 
 **stock_items**
 - `product_id` (FK → products)
