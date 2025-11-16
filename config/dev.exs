@@ -1,7 +1,7 @@
 import Config
 
 config :supermarket, Supermarket.Repo,
-  username: "postgres",      # por ejemplo: "postgres"
+  username: "postgres",      
   password: "12345",   # la contraseña que configuraste
   hostname: "localhost",
   database: "supermarket_dev",

@@ -1,6 +1,6 @@
 # Usos:
 #   elixir lib/search_products.exs "Electrodomestico"
-#   elixir lib/search_products.exs "Electro,Linea Blanca"   # varias categorías (coma)
+#   elixir lib/search_products.exs "Electro,Linea Blanca"   
 #   elixir lib/search_products.exs --list-categories        # lista categorías únicas
 
 Mix.install([
