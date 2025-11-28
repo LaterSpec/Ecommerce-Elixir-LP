@@ -13,9 +13,9 @@ defmodule Supermarket.Repo do
 end
 
 Application.put_env(:supermarket, Supermarket.Repo,
-  username: "postgres", password: "12345", hostname: "localhost",
-  database: "supermarket_dev", port: 5432, pool_size: 5
-)
+  username: "postgres", password: "Figu_dev_1", hostname: "34.46.167.102",
+  database: "supermarket_dev", port: 5432, pool_size: 5,
+  ssl: [verify: :verify_none])
 
 defmodule Supermarket.Product do
   use Ecto.Schema

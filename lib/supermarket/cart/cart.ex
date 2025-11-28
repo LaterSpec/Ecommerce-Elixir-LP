@@ -1,139 +1,130 @@
 defmodule Supermarket.Cart do
-  import Ecto.Query
-  alias Supermarket.Repo
-  alias Supermarket.{Product}
+  import Ecto.Query, warn: false
+  alias MiTiendaWeb.Repo
+  alias Supermarket.Product
   alias Supermarket.Accounts.User
   alias Supermarket.Cart.CartItem
-  alias Supermarket.Inventory
 
-  # Agregar producto al carrito (o incrementar cantidad)
-  def add_to_cart(username, sku, quantity \\ 1) 
-      when is_binary(username) and is_integer(sku) and quantity > 0 do
-    
+  # === 1. AGREGAR AL CARRITO ===
+  def add_to_cart(username, sku, quantity \\ 1) do
     with {:ok, user} <- get_user_by_username(username),
-         {:ok, product} <- get_product_by_sku(sku),
-         {:ok, _} <- check_stock(sku, quantity) do
+         {:ok, product} <- get_product_by_sku(sku) do
       
-      case Repo.get_by(CartItem, user_id: user.id, product_id: product.id) do
-        nil ->
-          # Crear nuevo ítem
-          %CartItem{}
-          |> CartItem.changeset(%{
-            user_id: user.id,
-            product_id: product.id,
-            quantity: quantity
-          })
-          |> Repo.insert()
-        
-        cart_item ->
-          # Incrementar cantidad existente
-          new_qty = cart_item.quantity + quantity
-          cart_item
-          |> CartItem.changeset(%{quantity: new_qty})
-          |> Repo.update()
+      # Verificamos Stock Real disponible (Sumando los stock_items)
+      total_stock = Enum.reduce(product.stock_items, 0, fn i, acc -> i.quantity + acc end)
+      
+      # Verificamos cuanto tiene ya este usuario en su carrito
+      existing_item = Repo.get_by(CartItem, user_id: user.id, product_id: product.id)
+      current_qty_in_cart = if existing_item, do: existing_item.quantity, else: 0
+
+      if (current_qty_in_cart + quantity) <= total_stock do
+        case existing_item do
+          nil ->
+            %CartItem{}
+            |> CartItem.changeset(%{
+              user_id: user.id,
+              product_id: product.id,
+              quantity: quantity
+            })
+            |> Repo.insert()
+          
+          item ->
+            item
+            |> CartItem.changeset(%{quantity: item.quantity + quantity})
+            |> Repo.update()
+        end
+      else
+        {:error, "Stock insuficiente. Solo quedan #{total_stock} disponibles."}
       end
     end
   end
 
-  # Ver carrito del usuario con detalles de productos
-  def get_cart(username) when is_binary(username) do
+  # === 2. VER CARRITO (SOLO DEL USUARIO) ===
+  def get_cart(username) do
     case get_user_by_username(username) do
       {:ok, user} ->
-        items =
-          from(ci in CartItem,
-            join: p in Product, on: ci.product_id == p.id,
-            where: ci.user_id == ^user.id,
-            select: %{
-              cart_item_id: ci.id,
-              product_name: p.name,
-              sku: p.sku,
-              price: p.price,
-              quantity: ci.quantity,
-              subtotal: p.price * ci.quantity
-            },
-            order_by: [asc: ci.inserted_at]
-          )
-          |> Repo.all()
+        items = Repo.all(from c in CartItem,
+          where: c.user_id == ^user.id,
+          preload: [:product],
+          order_by: [asc: c.inserted_at]
+        )
 
-        total = Enum.reduce(items, 0, fn item, acc -> acc + item.subtotal end)
-        {:ok, %{items: items, total: total}}
-      
+        cart_items = Enum.map(items, fn item -> 
+          %{
+            sku: item.product.sku,
+            product_name: item.product.name,
+            price: item.product.price,
+            quantity: item.quantity,
+            subtotal: item.product.price * item.quantity
+          }
+        end)
+
+        total = Enum.reduce(cart_items, 0, fn i, acc -> i.subtotal + acc end)
+        {:ok, %{items: cart_items, total: total}}
+
       error -> error
     end
   end
 
-  # Actualizar cantidad de un producto en el carrito
-  def update_quantity(username, sku, new_quantity) 
-      when is_binary(username) and is_integer(sku) and new_quantity > 0 do
-    
-    with {:ok, user} <- get_user_by_username(username),
-         {:ok, product} <- get_product_by_sku(sku),
-         {:ok, _} <- check_stock(sku, new_quantity) do
-      
-      case Repo.get_by(CartItem, user_id: user.id, product_id: product.id) do
-        nil -> {:error, :not_in_cart}
-        cart_item ->
-          cart_item
-          |> CartItem.changeset(%{quantity: new_quantity})
-          |> Repo.update()
-      end
-    end
-  end
-
-  # Eliminar producto del carrito
-  def remove_from_cart(username, sku) when is_binary(username) and is_integer(sku) do
+  # === 3. ELIMINAR UN ITEM ===
+  def remove_from_cart(username, sku) do
     with {:ok, user} <- get_user_by_username(username),
          {:ok, product} <- get_product_by_sku(sku) do
       
       case Repo.get_by(CartItem, user_id: user.id, product_id: product.id) do
         nil -> {:error, :not_in_cart}
-        cart_item -> Repo.delete(cart_item)
+        item -> Repo.delete(item)
       end
     end
   end
 
-  # Vaciar carrito completo
-  def clear_cart(username) when is_binary(username) do
+  # === 4. VACIAR CARRITO COMPLETO ===
+  def clear_cart(username) do
     case get_user_by_username(username) do
       {:ok, user} ->
-        {count, _} =
-          from(ci in CartItem, where: ci.user_id == ^user.id)
-          |> Repo.delete_all()
-        
-        {:ok, count}
+        from(c in CartItem, where: c.user_id == ^user.id)
+        |> Repo.delete_all()
+        {:ok, :cart_cleared}
       
       error -> error
     end
   end
 
-  # Checkout (procesar compra y descontar stock)
-  def checkout(username) when is_binary(username) do
+  # === 5. CHECKOUT (PAGAR Y DESCONTAR STOCK) ===
+  def checkout(username) do
     Repo.transaction(fn ->
       case get_cart(username) do
         {:ok, %{items: []}} ->
-          Repo.rollback(:empty_cart)
+          Repo.rollback("El carrito esta vacio")
         
         {:ok, %{items: items, total: total}} ->
-          # Verificar y descontar stock
+          # Para cada item comprado, restamos del stock real
           Enum.each(items, fn item ->
-            case Inventory.inc_stock_by_sku(item.sku, -item.quantity) do
-              {:ok, _} -> :ok
-              {:error, reason} -> Repo.rollback(reason)
+            product = Repo.get_by!(Product, sku: item.sku) |> Repo.preload(:stock_items)
+            
+            # Buscamos el primer lote de stock disponible
+            # (Simplificacion: Tomamos el primer stock_item y le restamos)
+            stock_record = List.first(product.stock_items)
+            
+            if stock_record && stock_record.quantity >= item.quantity do
+              stock_record
+              |> Ecto.Changeset.change(quantity: stock_record.quantity - item.quantity)
+              |> Repo.update!()
+            else
+              Repo.rollback("No hay suficiente stock real para #{item.product_name}")
             end
           end)
-          
-          # Limpiar carrito
+
+          # Si todo salio bien, vaciamos el carrito
           clear_cart(username)
           
-          {:ok, %{items_count: length(items), total: total}}
-        
-        {:error, reason} ->
-          Repo.rollback(reason)
+          %{status: :success, total_paid: total, items_count: length(items)}
       end
     end)
   end
 
-  # === Helpers privados ===
+  # === HELPERS PRIVADOS ===
+
   defp get_user_by_username(username) do
     case Repo.get_by(User, username: username) do
       nil -> {:error, :user_not_found}
@@ -142,18 +133,10 @@ defmodule Supermarket.Cart do
   end
 
   defp get_product_by_sku(sku) do
-    case Repo.get_by(Product, sku: sku) do
+    # Preload stock_items es vital para verificar cantidades
+    case Repo.get_by(Product, sku: sku) |> Repo.preload(:stock_items) do
       nil -> {:error, :product_not_found}
       product -> {:ok, product}
-    end
-  end
-
-  defp check_stock(sku, requested_qty) do
-    available = Inventory.get_stock_by_sku(sku)
-    if available >= requested_qty do
-      {:ok, available}
-    else
-      {:error, :insufficient_stock}
     end
   end
 end

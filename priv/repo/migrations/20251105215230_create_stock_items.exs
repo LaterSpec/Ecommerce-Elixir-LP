@@ -1,4 +1,4 @@
-defmodule Supermarket.Repo.Migrations.CreateStockItems do
+defmodule MiTiendaWeb.Repo.Migrations.CreateStockItems do
   use Ecto.Migration
 
   def change do

@@ -1,11 +1,11 @@
 defmodule Supermarket.Inventory do
   import Ecto.Query
-  alias Supermarket.Repo
-  alias Supermarket.Product  
+  alias MiTiendaWeb.Repo
+  alias Supermarket.Product
   alias Supermarket.Inventory.StockItem
 
   # Lee stock por SKU
-  def get_stock_by_sku(sku) when is_integer(sku) do
+  def get_stock_by_sku(sku) when is_integer(sku) do # <-- De vuelta a is_integer
     from(si in StockItem,
       join: p in Product, on: p.id == si.product_id,
       where: p.sku == ^sku,
@@ -18,10 +18,10 @@ defmodule Supermarket.Inventory do
     end
   end
 
-  # Setea cantidad exacta por SKU 
-  def set_stock_by_sku(sku, qty) when is_integer(sku) and is_integer(qty) and qty >= 0 do
+  # Setea cantidad exacta por SKU
+  def set_stock_by_sku(sku, qty) when is_integer(sku) and is_integer(qty) and qty >= 0 do # <-- De vuelta a is_integer
     case Repo.get_by(Product, sku: sku) do
-      nil -> 
+      nil ->
         {:error, :product_not_found}
       product ->
         pid = product.id
@@ -38,11 +38,11 @@ defmodule Supermarket.Inventory do
     end
   end
 
-  # Ajusta (+/-) stock por SKU 
-  def inc_stock_by_sku(sku, delta) when is_integer(sku) and is_integer(delta) do
+  # Ajusta (+/-) stock por SKU
+  def inc_stock_by_sku(sku, delta) when is_integer(sku) and is_integer(delta) do # <-- De vuelta a is_integer
     Repo.transaction(fn ->
       case Repo.get_by(Product, sku: sku) do
-        nil -> 
+        nil ->
           Repo.rollback(:product_not_found)
         product ->
           pid = product.id

@@ -15,11 +15,12 @@ end
 # Cargar configuración de conexión (igual que config/dev.exs)
 Application.put_env(:supermarket, Supermarket.Repo,
   username: "postgres",
-  password: "12345",
-  hostname: "localhost",
+  password: "Figu_dev_1",
+  hostname: "34.46.167.102",
   database: "supermarket_dev",
   port: 5432,
-  pool_size: 5
+  pool_size: 5,
+  ssl: [verify: :verify_none]
 )
 
 # Schema del producto (debe coincidir con tu tabla products)

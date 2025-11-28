@@ -1,0 +1,12 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\lib",
+    "\\lib\\supermarket",
+    "\\lib\\supermarket\\inventory",
+    "\\priv",
+    "\\priv\\repo"
+  ],
+  "SelectedNode": "\\lib\\supermarket\\inventory\\inventory.ex",
+  "PreviewInSolutionExplorer": false
+}

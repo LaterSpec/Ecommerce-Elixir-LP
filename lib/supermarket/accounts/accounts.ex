@@ -1,6 +1,6 @@
 defmodule Supermarket.Accounts do
   # import Ecto.Query
-  alias Supermarket.{Repo}
+  alias MiTiendaWeb.Repo
   alias Supermarket.Accounts.User
 
   # Registro

@@ -4,37 +4,44 @@ defmodule Supermarket.Accounts.User do
 
   schema "users" do
     field :username, :string
-    field :password, :string, virtual: true
-    field :password_confirmation, :string, virtual: true
+    # Campo nuevo para saber si es admin o user
+    field :role, :string, default: "user"
+    
+    # :password es virtual, solo existe en el formulario
+    field :password, :string, virtual: true 
     field :password_hash, :string
 
-    has_many :cart_items, Supermarket.Cart.CartItem
-
     timestamps()
-
   end
 
-  # registro con password plano 
+  @doc false
+  def changeset(user, attrs) do
+    # Agregamos :role aqui por si algun dia queremos editarlo desde un panel de admin
+    user
+    |> cast(attrs, [:username, :password_hash, :role])
+    |> validate_required([:username, :password_hash, :role])
+  end
+
+  @doc """
+  Changeset para registro publico.
+  NO permitimos que el usuario elija su rol aqui (siempre sera 'user' por defecto).
+  """
   def registration_changeset(user, attrs) do
     user
-    |> cast(attrs, [:username, :password, :password_confirmation])
-    |> validate_required([:username, :password, :password_confirmation])
-    |> validate_length(:username, min: 3, max: 40)
-    |> validate_length(:password, min: 4, max: 72)
-    |> validate_confirmation(:password, message: "no coincide")
-    |> unique_constraint(:username)
+    |> cast(attrs, [:username, :password])
+    |> validate_required([:username, :password])
+    |> validate_length(:password, min: 6, message: "must be at least 6 chars")
     |> put_password_hash()
   end
 
-  defp put_password_hash(%Ecto.Changeset{valid?: true, changes: %{password: pw}} = cs) do
-    # Hash simple con SHA256 + sal; suficiente para trabajo de curso
-    salt = "supermarket_salt_v1"
-    hash =
-      :crypto.hash(:sha256, salt <> pw)
-      |> Base.encode16(case: :lower)
-
-    put_change(cs, :password_hash, hash)
+  defp put_password_hash(changeset) do
+    case get_change(changeset, :password) do
+      nil -> 
+        changeset
+      password ->
+        # SHA-256 ENCRYPTION
+        hash = :crypto.hash(:sha256, password) |> Base.encode16(case: :lower)
+        put_change(changeset, :password_hash, hash)
+    end
   end
-
-  defp put_password_hash(cs), do: cs
 end
