@@ -2,7 +2,7 @@ import Config
 
 config :mi_tienda_web, MiTiendaWeb.Repo,
   username: "postgres",
-  password: "Figu_dev_1",
+  password: "********",
   hostname: "34.46.167.102",
   database: "supermarket_dev",
   port: 5432,
